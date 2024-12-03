@@ -6,14 +6,7 @@ import { useParams } from "next/navigation";
 import { ApiGateway } from "@/shared/axios";
 import { useAuth } from "@clerk/nextjs";
 import { Loading } from "@/components/Loading";
-
-// ===========================
-// Dynamic Imports
-// ===========================
-const DocumentViewer = dynamic(() => import("@/components/DocumentViewer"), {
-  ssr: false,
-  loading: () => <p>Loading...</p>,
-});
+import PdfViewer from "@/components/PdfViewer";
 
 const DocumentViewerPage: React.FC = () => {
   // ===========================
@@ -53,8 +46,8 @@ const DocumentViewerPage: React.FC = () => {
   // ===========================
   return (
     <>
-      {/* Document Viewer Component */}
-      {file && <DocumentViewer documentUrl={file.data} />}
+      {/* PDF Viewer Component */}
+      {file && <PdfViewer file={file.data} />}
     </>
   );
 };

@@ -10,7 +10,7 @@ https://drive.google.com/file/d/1Y2j7PMZKpYwzk90PNI2VaIU3Vc16vYdP/view?usp=shari
 
 ## Prerequisites
 
-- Node.js (version 18 or later)
+- Node.js (version 20 or later)
 - npm or yarn
 
 ## Setup Instructions
@@ -18,16 +18,16 @@ https://drive.google.com/file/d/1Y2j7PMZKpYwzk90PNI2VaIU3Vc16vYdP/view?usp=shari
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/midul9797/document-management-suite-frontend.git
 cd document-management-suite-frontend
 ```
 
 ### 2. Install Dependencies
 
 ```bash
-npm install
+npm install --legacy-peer-deps
 # or
-yarn install
+yarn install  --legacy-peer-deps
 ```
 
 ### 3. Environment Variables
