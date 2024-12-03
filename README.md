@@ -32,7 +32,7 @@ yarn install  --legacy-peer-deps
 
 ### 3. Environment Variables
 
-1. Rename `.env.example` to `.env`
+1. Rename `envfile.example` to `.env.local`
 2. It contains the required environment variables
 
 ### 4. Run the Development Server
