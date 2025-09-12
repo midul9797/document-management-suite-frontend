@@ -30,6 +30,6 @@ const HttpService = (baseUrl: string): AxiosInstance => {
   return instance;
 };
 
-const ApiGateway = HttpService("http://localhost:4000/api/v1");
+const ApiGateway = HttpService(process.env.NEXT_PUBLIC_API_GATEWAY as string);
 
 export { HttpService, ApiGateway };

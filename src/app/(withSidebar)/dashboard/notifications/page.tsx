@@ -12,7 +12,9 @@ import { useAuth } from "@clerk/nextjs";
 import { INotification } from "@/interfaces";
 import { Loading } from "@/components/Loading";
 
-const socket = io("http://localhost:4004", { autoConnect: false });
+const socket = io(process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE_API as string, {
+  autoConnect: false,
+});
 
 export default function NotificationsPage() {
   // ===========================
@@ -55,7 +57,6 @@ export default function NotificationsPage() {
   const fetchNotifications = async () => {
     const tempToken = await getToken();
     setToken(tempToken);
-    console.log(tempToken);
     const response = await ApiGateway("/notification", {
       headers: { Authorization: tempToken },
     });

@@ -165,6 +165,7 @@ export const SidebarLink = ({
   props?: LinkProps;
 }) => {
   const { open, animate } = useSidebar();
+
   return (
     <Link
       href={link.href}

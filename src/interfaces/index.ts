@@ -12,12 +12,16 @@ export interface IUser {
   profileImage: string | null;
 }
 export interface IDocument {
-  id: string;
+  _id: string;
+  url: string;
   fileId: string;
   title: string;
-  lastModified: string;
-  bookingTitle: string;
-  bookingDate: string;
+  size: number;
+  type: string;
+  version: number;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 export interface stateType {
   user: IUser | null;
@@ -26,13 +30,6 @@ export interface stateType {
   setToken: (value: string | null) => void;
 }
 
-export interface IBooking {
-  id: number;
-  title: string;
-  bookingDate: string;
-  documents?: { id: string; title: string }[];
-  description?: string;
-}
 export interface INotification {
   _id: string;
   title: string;

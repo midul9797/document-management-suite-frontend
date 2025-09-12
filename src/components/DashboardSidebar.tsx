@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 // ===========================
@@ -12,7 +13,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { SignOutButton } from "@clerk/nextjs";
 import { useStore } from "@/zustand/store";
-import { Bell, CalendarCheck2, Files, LogOutIcon } from "lucide-react";
+import { Bell, Files, LogOutIcon, Trash } from "lucide-react";
 import logo from "../../public/pulikidz-icon-100x100.png";
 
 // ===========================
@@ -36,13 +37,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
         <IconUserBolt className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
-    {
-      label: "Bookings",
-      href: "/dashboard/bookings",
-      icon: (
-        <CalendarCheck2 className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-      ),
-    },
+
     {
       label: "Documents",
       href: "/dashboard/documents",
@@ -55,6 +50,13 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
       href: "/dashboard/notifications",
       icon: (
         <Bell className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+      ),
+    },
+    {
+      label: "Trash",
+      href: "/dashboard/trash",
+      icon: (
+        <Trash className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
     {
@@ -92,7 +94,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
             {open ? <Logo /> : <LogoIcon />}
             <div className="mt-8 flex flex-col gap-2">
               {links.map((link, idx) => (
-                <SidebarLink key={idx} link={link} />
+                <SidebarLink key={idx} link={link as any} />
               ))}
             </div>
           </div>

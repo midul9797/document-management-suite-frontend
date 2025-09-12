@@ -1,19 +1,23 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-import { useParams } from "next/navigation";
+
+import { useParams, useSearchParams } from "next/navigation";
 import { ApiGateway } from "@/shared/axios";
 import { useAuth } from "@clerk/nextjs";
 import { Loading } from "@/components/Loading";
-import PdfViewer from "@/components/PdfViewer";
-
+import dynamic from "next/dynamic";
+const PdfViewer = dynamic(() => import("@/components/PdfViewer"), {
+  ssr: false,
+});
 const DocumentViewerPage: React.FC = () => {
   // ===========================
   // State & Hooks
   // ===========================
   const { id } = useParams();
-  const [file, setFile] = useState<{ data: string; type: string } | null>(null);
+  const searchParams = useSearchParams();
+  const url = searchParams.get("url");
+  const [file, setFile] = useState<{ data: string } | null>(null);
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
 
@@ -23,11 +27,17 @@ const DocumentViewerPage: React.FC = () => {
   const fetchFile = async () => {
     setLoading(true);
     const token = await getToken();
-    const response = await ApiGateway.get(`/file/${id}`, {
-      headers: { Authorization: token },
+    const res = await ApiGateway.get(`/document-metadata/download/${id}`, {
+      headers: {
+        Authorization: token,
+      },
     });
-    if (response.data) {
-      setFile(response.data);
+
+    if (res) {
+      // Handle different base64 data formats
+
+      const base64Data = res.data;
+      setFile({ data: base64Data });
     }
     setLoading(false);
   };
@@ -41,13 +51,13 @@ const DocumentViewerPage: React.FC = () => {
 
   if (loading) return <Loading />;
 
-  // ===========================
+  // // ===========================
   // Render Component
   // ===========================
   return (
     <>
       {/* PDF Viewer Component */}
-      {file && <PdfViewer file={file.data} />}
+      {file && <PdfViewer file={url as string} />}
     </>
   );
 };
