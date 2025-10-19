@@ -26,8 +26,14 @@ export interface IDocument {
 export interface stateType {
   user: IUser | null;
   token: string | null;
+  notifications: INotification[];
+  unreadCount: number;
   setUser: (value: IUser | null) => void;
   setToken: (value: string | null) => void;
+  setNotifications: (notifications: INotification[]) => void;
+  addNotification: (notification: INotification) => void;
+  markNotificationAsRead: (id: string) => void;
+  markAllNotificationsAsRead: () => void;
 }
 
 export interface INotification {

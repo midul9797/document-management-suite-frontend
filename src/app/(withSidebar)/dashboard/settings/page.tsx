@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 // ===========================
@@ -19,6 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@clerk/nextjs";
 import { ApiGateway } from "@/shared/axios";
+import { toast } from "sonner";
 import { Loading } from "@/components/Loading";
 
 export default function SettingsPage() {
@@ -47,7 +49,7 @@ export default function SettingsPage() {
       { key: "notificationType", value: notificationMethod },
       { headers: { Authorization: token } }
     );
-    alert("Saved");
+    toast.success("Settings saved successfully");
     setSaving(false);
     fetchSetting();
   };

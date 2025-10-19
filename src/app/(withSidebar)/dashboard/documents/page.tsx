@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -34,6 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Loading } from "@/components/Loading";
 import CommentModal from "@/components/CommentModal";
 import downloadFile from "@/helpers/downloadFile";
+import { toast } from "sonner";
 
 type Document = {
   _id: string;
@@ -55,8 +57,9 @@ export default function DocumentList() {
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [uploading, setUploading] = useState<boolean>(false);
-  const [deleting, setDeleting] = useState<boolean>(false);
-  const [updating, setUpdating] = useState<boolean>(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [updating, setUpdating] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [currentCommentModalId, setCurrentCommentModalId] =
     useState<string>("");
@@ -107,8 +110,17 @@ export default function DocumentList() {
     type: string = "upload"
   ): Promise<void> => {
     const maxFileSize = 10 * 1024 * 1024;
+
+    // Check file type - only allow PDF files
+    if (file.type !== "application/pdf") {
+      toast.error(
+        `Only PDF files are allowed. "${file.name}" is not a PDF file.`
+      );
+      return Promise.reject(new Error("Invalid file type"));
+    }
+
     if (file.size > maxFileSize) {
-      alert(
+      toast.error(
         `The file "${file.name}" exceeds the 10MB size limit and will not be uploaded.`
       );
       return Promise.reject(new Error("File too large"));
@@ -118,7 +130,7 @@ export default function DocumentList() {
     return new Promise((resolve, reject) => {
       reader.onload = async () => {
         if (type === "update") {
-          setUpdating(true);
+          setUpdating(currentUpdateId);
           const payload = {
             title: file.name,
             type: file.type,
@@ -135,8 +147,8 @@ export default function DocumentList() {
               headers: { Authorization: token },
             }
           );
-          setUpdating(false);
-          if (response.data) alert("Document Updated Successfully");
+          setUpdating(null);
+          if (response.data) toast.success("Document Updated Successfully");
           resolve();
         } else {
           setUploading(true);
@@ -156,9 +168,9 @@ export default function DocumentList() {
                 { headers: { Authorization: token } }
               );
               if (metadata_response.data) {
-                alert("Document Uploaded Successfully");
+                toast.success("Document Uploaded Successfully");
               } else {
-                alert("Document Upload Failed");
+                toast.error("Document Upload Failed");
               }
             }
             resolve();
@@ -169,8 +181,12 @@ export default function DocumentList() {
             setUploading(false);
           }
         }
-        if (currentUpdateId === "") fetchSharedDocuments();
-        else fetchDocuments();
+        // Refresh documents after successful update
+        if (activeTab === "my-documents") {
+          fetchDocuments();
+        } else {
+          fetchSharedDocuments();
+        }
       };
 
       // Error handling for file reading
@@ -184,28 +200,37 @@ export default function DocumentList() {
 
   // Function to handle file download
   const handleDownload = async (id: string, fileName: string, type: string) => {
-    const token = await getToken();
-    const { blob, name } = (await downloadFile(
-      id,
-      token as string,
-      fileName,
-      type
-    )) as {
-      blob: Blob;
-      name: string;
-    };
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", name);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    setDownloading(id);
+    try {
+      const token = await getToken();
+      const { blob, name } = (await downloadFile(
+        id,
+        token as string,
+        fileName,
+        type
+      )) as {
+        blob: Blob;
+        name: string;
+      };
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", name);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("Document downloaded successfully");
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      toast.error("Error downloading document");
+    } finally {
+      setDownloading(null);
+    }
   };
 
   // Function to handle document deletion
   const handleDelete = async (documentId: string) => {
-    setDeleting(true);
+    setDeleting(documentId);
     const token = await getToken();
     try {
       // Shared documents do not contain document metadata id
@@ -216,12 +241,12 @@ export default function DocumentList() {
         { headers: { Authorization: token } }
       );
 
-      if (responseDocDelete) alert("deleted");
+      if (responseDocDelete) toast.success("Document deleted successfully");
     } catch (error) {
       console.error("Error deleting document:", error);
-      alert("Error deleting document");
+      toast.error("Error deleting document");
     } finally {
-      setDeleting(false);
+      setDeleting(null);
     }
     if (documentId === "") fetchSharedDocuments();
     else fetchDocuments();
@@ -353,7 +378,10 @@ export default function DocumentList() {
                         <div className="flex items-center space-x-4">
                           <FileText className="h-8 w-8 text-blue-500" />
                           <div>
-                            <h3 className="text-lg font-semibold">
+                            <h3
+                              className="text-lg font-semibold truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px] lg:max-w-[500px]"
+                              title={doc.title}
+                            >
                               {doc.title}
                             </h3>
 
@@ -401,6 +429,7 @@ export default function DocumentList() {
                                   ref={fileInputRef}
                                   type="file"
                                   className="hidden"
+                                  accept=".pdf,application/pdf"
                                   onChange={(e) =>
                                     e.target.files &&
                                     handleFileChange(
@@ -414,10 +443,10 @@ export default function DocumentList() {
                                   size="sm"
                                   onClick={() => handleUpdate(doc._id)}
                                 >
-                                  {updating && (
+                                  {updating === doc._id && (
                                     <Loader2 className="animate-spin" />
                                   )}
-                                  {!updating && (
+                                  {updating !== doc._id && (
                                     <UploadIcon className="h-4 w-4" />
                                   )}
                                 </Button>
@@ -435,10 +464,10 @@ export default function DocumentList() {
                                 size="sm"
                                 onClick={() => handleDelete(doc._id)}
                               >
-                                {deleting && (
+                                {deleting === doc._id && (
                                   <Loader2 className="animate-spin" />
                                 )}
-                                {!deleting && (
+                                {deleting !== doc._id && (
                                   <Trash2 color="red" className="h-4 w-4" />
                                 )}
                               </Button>
@@ -457,7 +486,12 @@ export default function DocumentList() {
                                   handleDownload(doc._id, doc.title, doc.type);
                                 }}
                               >
-                                <Download className="h-4 w-4" />
+                                {downloading === doc._id && (
+                                  <Loader2 className="animate-spin" />
+                                )}
+                                {downloading !== doc._id && (
+                                  <Download className="h-4 w-4" />
+                                )}
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -492,7 +526,10 @@ export default function DocumentList() {
                         <div className="flex items-center space-x-4">
                           <FileText className="h-8 w-8 text-green-500" />
                           <div>
-                            <h3 className="text-lg font-semibold">
+                            <h3
+                              className="text-lg font-semibold truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px] lg:max-w-[500px]"
+                              title={doc.name}
+                            >
                               {doc.name}
                             </h3>
 
@@ -535,10 +572,10 @@ export default function DocumentList() {
                                         handleDelete(doc._id);
                                       }}
                                     >
-                                      {deleting && (
+                                      {deleting === doc._id && (
                                         <Loader2 className="animate-spin" />
                                       )}
-                                      {!deleting && (
+                                      {deleting !== doc._id && (
                                         <Trash2
                                           color="red"
                                           className="h-4 w-4"
@@ -560,6 +597,7 @@ export default function DocumentList() {
                                         ref={fileInputRef}
                                         type="file"
                                         className="hidden"
+                                        accept=".pdf,application/pdf"
                                         onChange={(e) =>
                                           e.target.files &&
                                           handleFileChange(
@@ -573,10 +611,10 @@ export default function DocumentList() {
                                         size="sm"
                                         onClick={() => handleUpdate(doc._id)}
                                       >
-                                        {!updating && (
+                                        {updating !== doc._id && (
                                           <UploadIcon className="h-4 w-4" />
                                         )}
-                                        {updating && (
+                                        {updating === doc._id && (
                                           <Loader2 className="animate-spin" />
                                         )}
                                       </Button>

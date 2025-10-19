@@ -31,6 +31,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useStore } from "@/zustand/store";
 import { ApiGateway } from "@/shared/axios";
 import { useAuth } from "@clerk/nextjs";
+import { toast } from "sonner";
 
 // ===========================
 // Form Schema
@@ -116,7 +117,7 @@ function ProfilePage() {
     });
 
     if (res) {
-      alert("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
     }
     setLoading(false);
   };

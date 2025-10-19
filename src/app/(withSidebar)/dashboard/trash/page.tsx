@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import { ApiGateway } from "@/shared/axios";
 import { useAuth } from "@clerk/nextjs";
 import React, { useEffect, useState } from "react";
 import { FileText, RotateCcw, Trash2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface TrashDocument {
   _id: string;
@@ -73,10 +75,10 @@ const Trash = () => {
 
       // Remove from trash list
       setTrashDocuments((prev) => prev.filter((doc) => doc._id !== documentId));
-      alert("Document restored successfully");
+      toast.success("Document restored successfully");
     } catch (error) {
       console.error("Error restoring document:", error);
-      alert("Error restoring document");
+      toast.error("Error restoring document");
     }
     setRestoring(null);
   };
@@ -102,10 +104,10 @@ const Trash = () => {
 
       // Remove from trash list
       setTrashDocuments((prev) => prev.filter((doc) => doc._id !== documentId));
-      alert("Document permanently deleted");
+      toast.success("Document permanently deleted");
     } catch (error) {
       console.error("Error permanently deleting document:", error);
-      alert("Error permanently deleting document");
+      toast.error("Error permanently deleting document");
     }
     setDeletingPermanently(null);
   };

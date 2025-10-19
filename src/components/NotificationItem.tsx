@@ -2,7 +2,7 @@
 // Imports
 // ===========================
 import { formatDistanceToNow } from "date-fns";
-import { Check, X } from "lucide-react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,21 +12,14 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
+import { INotification } from "@/interfaces";
 
 // ===========================
 // Types & Interfaces
 // ===========================
-interface Notification {
-  _id: string;
-  title: string;
-  message: string;
-  createdAt: Date;
-  read: boolean;
-}
-
 interface NotificationItemProps {
-  notification: Notification;
-  toggleRead: (id: string) => void;
+  notification: INotification;
+  markAsRead: (id: string) => void;
 }
 
 // ===========================
@@ -34,7 +27,7 @@ interface NotificationItemProps {
 // ===========================
 export default function NotificationItem({
   notification,
-  toggleRead,
+  markAsRead,
 }: NotificationItemProps) {
   // Format the time distance
   const timeAgo = formatDistanceToNow(notification.createdAt, {
@@ -69,18 +62,16 @@ export default function NotificationItem({
         >
           {notification.read ? "Read" : "Unread"}
         </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => toggleRead(notification._id)}
-        >
-          {notification.read ? (
-            <X className="h-4 w-4 mr-2" />
-          ) : (
+        {!notification.read && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => markAsRead(notification._id)}
+          >
             <Check className="h-4 w-4 mr-2" />
-          )}
-          {notification.read ? "Mark as unread" : "Mark as read"}
-        </Button>
+            Mark as read
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

@@ -5,22 +5,22 @@ import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import NotificationItem from "@/components/NotificationItem";
-import { io } from "socket.io-client";
-import { jwtDecode } from "jwt-decode";
 import { ApiGateway } from "@/shared/axios";
 import { useAuth } from "@clerk/nextjs";
-import { INotification } from "@/interfaces";
 import { Loading } from "@/components/Loading";
-
-const socket = io(process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE_API as string, {
-  autoConnect: false,
-});
+import { useStore } from "@/zustand/store";
 
 export default function NotificationsPage() {
   // ===========================
   // State & Hooks
   // ===========================
-  const [notifications, setNotifications] = useState<INotification[]>([]);
+  const {
+    notifications,
+    unreadCount,
+    setNotifications,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+  } = useStore();
   const { getToken } = useAuth();
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,28 +28,32 @@ export default function NotificationsPage() {
   // ===========================
   // Event Handlers
   // ===========================
-  const markAllAsRead = () => {
-    setNotifications(
-      notifications.map((notification) => ({ ...notification, read: true }))
+  const markAllAsRead = async () => {
+    markAllNotificationsAsRead();
+    await ApiGateway.patch(
+      `/notification/read-all`,
+      {},
+      {
+        headers: { Authorization: token },
+      }
     );
   };
 
-  const toggleRead = (id: string) => {
-    setNotifications(
-      notifications.map((notification) =>
-        notification._id === id
-          ? { ...notification, read: !notification.read }
-          : notification
-      )
+  const markAsRead = async (id: string) => {
+    markNotificationAsRead(id);
+    await ApiGateway.patch(
+      `/notification/${id}`,
+      { read: true },
+      {
+        headers: { Authorization: token },
+      }
     );
   };
 
   // ===========================
   // Computed Values
   // ===========================
-  const unreadCount = notifications.filter(
-    (notification) => !notification.read
-  ).length;
+  // unreadCount is now managed by the global store
 
   // ===========================
   // Data Fetching
@@ -73,20 +77,9 @@ export default function NotificationsPage() {
     if (notifications.length === 0) {
       fetchNotifications();
     }
-    if (token) {
-      socket.connect();
-
-      socket.emit("subscribe", jwtDecode<{ clerkId: string }>(token).clerkId);
-      socket.on("notification", (notification) => {
-        setNotifications((prev) => [notification, ...prev]);
-      });
-
-      return () => {
-        socket.disconnect();
-        socket.off("notification");
-      };
-    }
-  }, [token]);
+    // Socket connection is now handled by the useNotificationSocket hook in the sidebar
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (loading) return <Loading />;
 
@@ -118,7 +111,7 @@ export default function NotificationsPage() {
           <NotificationItem
             key={notification._id}
             notification={notification}
-            toggleRead={toggleRead}
+            markAsRead={() => markAsRead(notification._id)}
           />
         ))}
       </ScrollArea>

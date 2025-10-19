@@ -15,6 +15,7 @@ import { SignOutButton } from "@clerk/nextjs";
 import { useStore } from "@/zustand/store";
 import { Bell, Files, LogOutIcon, Trash } from "lucide-react";
 import logo from "../../public/pulikidz-icon-100x100.png";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 
 // ===========================
 // Main Component
@@ -23,8 +24,11 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   // ===========================
   // Hooks & State
   // ===========================
-  const { user } = useStore();
+  const { user, unreadCount } = useStore();
   const [open, setOpen] = useState(false);
+
+  // Initialize socket connection for notifications
+  useNotificationSocket();
 
   // ===========================
   // Navigation Links Config
@@ -49,7 +53,16 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
       label: "Notifications",
       href: "/dashboard/notifications",
       icon: (
-        <Bell className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+        <div className="relative">
+          <Bell className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full flex items-center justify-center">
+              <span className="text-xs text-white font-bold">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -147,7 +160,7 @@ export const Logo = () => {
         animate={{ opacity: 1 }}
         className="text-lg tracking-[2px] font-semibold text-black dark:text-white whitespace-pre"
       >
-        Pulikidz
+        Document Suite
       </motion.span>
     </Link>
   );

@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Upload, X, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface FileUploadModalProps {
   isOpen: boolean;
@@ -30,8 +31,17 @@ export function FileUploadModal({
 
   const handleFileSelect = useCallback((file: File) => {
     const maxFileSize = 10 * 1024 * 1024; // 10MB
+
+    // Check file type - only allow PDF files
+    if (file.type !== "application/pdf") {
+      toast.error(
+        `Only PDF files are allowed. "${file.name}" is not a PDF file.`
+      );
+      return;
+    }
+
     if (file.size > maxFileSize) {
-      alert(`The file "${file.name}" exceeds the 10MB size limit.`);
+      toast.error(`The file "${file.name}" exceeds the 10MB size limit.`);
       return;
     }
     setSelectedFile(file);
@@ -114,7 +124,10 @@ export function FileUploadModal({
             {selectedFile ? (
               <div className="space-y-2">
                 <FileText className="h-12 w-12 mx-auto text-green-500" />
-                <p className="font-medium text-green-700 dark:text-green-300">
+                <p
+                  className="font-medium text-green-700 dark:text-green-300 truncate max-w-[250px] sm:max-w-[300px]"
+                  title={selectedFile.name}
+                >
                   {selectedFile.name}
                 </p>
                 <p className="text-sm text-gray-500">
@@ -158,13 +171,13 @@ export function FileUploadModal({
             type="file"
             className="hidden"
             onChange={handleFileInputChange}
-            accept="*/*"
+            accept=".pdf,application/pdf"
             disabled={uploading}
           />
 
           {/* File Size Info */}
           <p className="text-xs text-gray-500 text-center">
-            Maximum file size: 10MB
+            Only PDF files allowed • Maximum file size: 10MB
           </p>
 
           {/* Action Buttons */}

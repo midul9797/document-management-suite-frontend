@@ -23,6 +23,7 @@ import { Share2Icon } from "lucide-react";
 import { TooltipProvider } from "./ui/tooltip";
 import { useAuth } from "@clerk/nextjs";
 import { ApiGateway } from "@/shared/axios";
+import { toast } from "sonner";
 
 // ===========================
 // Component
@@ -64,7 +65,7 @@ export function ShareModal({ documentId }: { documentId: string }) {
         { headers: { Authorization: token } }
       );
       if (response) {
-        alert("Shared");
+        toast.success("Document shared successfully");
         setOpen(false);
         setEmail("");
         setSelectedOptions([]);
@@ -72,7 +73,7 @@ export function ShareModal({ documentId }: { documentId: string }) {
     } catch (error) {
       setLoading(false);
       console.error("Error sharing document:", error);
-      alert("Error sharing document");
+      toast.error("Error sharing document");
     } finally {
       setLoading(false);
     }
